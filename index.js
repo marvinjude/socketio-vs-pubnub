@@ -1,36 +1,50 @@
-const express = require('express');
-const lighthouse = require('lighthouse');
 const chromeLauncher = require('chrome-launcher');
+const puppeteer = require('puppeteer');
+const lighthouse = require('lighthouse');
+const request = require('request');
+const express = require('express');
+const util = require('util');
+
 const app = express();
-
-function launchChromeAndRunLighthouse(url, opts, config = null) {
-  return chromeLauncher
-    .launch({ chromeFlags: opts.chromeFlags, onlyCategories: ['performance'] })
-    .then(chrome => {
-      opts.port = chrome.port;
-      return lighthouse(url, opts, config).then(results => {
-        // use results.lhr for the JS-consumeable output
-        // https://github.com/GoogleChrome/lighthouse/blob/master/types/lhr.d.ts
-        // use results.report for the HTML/JSON/CSV output as a string
-        // use results.artifacts for the trace/screenshots/other specific case you need (rarer)
-        return chrome.kill().then(() => results.lhr);
-      });
-    });
-}
-
-const opts = { chromeFlags: ['--show-paint-rects'] };
 
 const asyncMiddleware = fn => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
+async function launchChromeAndRunLighthouse() {
+  const URL = 'https://www.chromestatus.com/features';
+
+  const opts = {
+    chromeFlags: ['--headless'],
+    logLevel: 'info',
+    output: 'json'
+  };
+
+  // Launch chrome using chrome-launcher.
+  const chrome = await chromeLauncher.launch(opts);
+  opts.port = chrome.port;
+
+  // Connect to it using puppeteer.connect().
+  const resp = await util.promisify(request)(
+    `http://localhost:${opts.port}/json/version`
+  );
+  const { webSocketDebuggerUrl } = JSON.parse(resp.body);
+  const browser = await puppeteer.connect({
+    browserWSEndpoint: webSocketDebuggerUrl
+  });
+
+  // Run Lighthouse.
+  return lighthouse(URL, opts, null).then(async result => {
+    await browser.disconnect();
+    await chrome.kill();
+    return result.lhr;
+  });
+}
+
 app.get(
   '/',
   asyncMiddleware(async (req, res, next) => {
-    const results = await launchChromeAndRunLighthouse(
-      'https://google.com',
-      opts
-    );
+    const results = await launchChromeAndRunLighthouse('https://google.com');
     res.json(results);
   })
 );
