@@ -18,20 +18,21 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
     });
 }
 
-const opts = {chromeFlags: ['--show-paint-rects']};
+const opts = { chromeFlags: ['--show-paint-rects'] };
 
-const asyncMiddleware = fn =>
-  (req, res, next) => {
-    Promise.resolve(fn(req, res, next))
-      .catch(next);
-  };
+const asyncMiddleware = fn => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
 
-app.get('/', asyncMiddleware(async (req, res, next) =>  {
-  const results = await launchChromeAndRunLighthouse(
-    'https://google.com',
-    opts
-  );
-  res.json(results);
-}));
+app.get(
+  '/',
+  asyncMiddleware(async (req, res, next) => {
+    const results = await launchChromeAndRunLighthouse(
+      'https://google.com',
+      opts
+    );
+    res.json(results);
+  })
+);
 
-app.listen('5000', () => console.log('App don dey run'));
+app.listen(process.env.PORT || '5000', () => console.log('App don dey run'));
