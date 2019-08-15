@@ -15,7 +15,7 @@ async function launchChromeAndRunLighthouse() {
   const URL = 'https://www.chromestatus.com/features';
 
   const opts = {
-    chromeFlags: ['--headless'],
+    // chromeFlags: ['--headless'],
     logLevel: 'info',
     output: 'json'
   };
@@ -49,4 +49,4 @@ app.get(
   })
 );
 
-app.listen(process.env.PORT || 8080, () => console.log('App don dey run'));
+app.listen(process.env.PORT || 8081, () => console.log('App don dey run'));
