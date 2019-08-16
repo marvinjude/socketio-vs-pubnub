@@ -15,7 +15,7 @@ async function launchChromeAndRunLighthouse() {
   const URL = 'https://www.chromestatus.com/features';
 
   const opts = {
-    // chromeFlags: ['--headless'],
+    chromeFlags: ['--headless'],
     logLevel: 'info',
     output: 'json'
   };
