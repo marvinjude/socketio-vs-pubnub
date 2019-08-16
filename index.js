@@ -19,7 +19,7 @@ app.get(
     } else {
       res.json({
         error: true,
-        message: `You're not specifying the URL`
+        message: `You're not specifying any URL`
       });
     }
   })
