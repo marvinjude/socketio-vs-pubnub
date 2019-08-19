@@ -38,15 +38,17 @@ async function launchChromeAndRunLighthouse(URL) {
 }
 
 const extractResult = lighthouseResult => {
-  return { 
-      is_on_https: lighthouseResult.audits['is-on-https'],
-      works_offline: lighthouseResult.audits['works-offline'],
-      without_js: lighthouseResult.audits['without-js'],
-      is_crawlable: lighthouseResult.audits['is-crawlable'],
-      font_size: lighthouseResult.audits['font-size'],
-      load_fast_for_pwa: lighthouseResult.audits['load-past-for-pwa'],
-      first_contentful_paint: lighthouseResult.audits['first-contentful-paint'],
-    };
+  return {
+    is_on_https: lighthouseResult.audits['is-on-https'],
+    works_offline: lighthouseResult.audits['works-offline'],
+    service_worker: lighthouseResult.audits['service-worker'],
+    without_js: lighthouseResult.audits['without-js'],
+    is_crawlable: lighthouseResult.audits['is-crawlable'],
+    installable_manifest: lighthouseResult.audits['installable-manifest'],
+    font_size: lighthouseResult.audits['font-size'],
+    load_fast_for_pwa: lighthouseResult.audits['load-past-for-pwa'],
+    first_contentful_paint: lighthouseResult.audits['first-contentful-paint']
+  };
 };
 
 module.exports = {
