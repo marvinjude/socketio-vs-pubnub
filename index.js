@@ -1,28 +1,32 @@
-const express = require('express');
-const cors = require('cors');
+var app = require('express')();
+var http = require('http').createServer(app);
+var io = require('socket.io')(http);
+var connections = [];
 
-const {
-  asyncMiddleware,
-  extractResult,
-  launchChromeAndRunLighthouse
-} = require('./libs');
+app.get('/socketio', function(req, res) {
+  res.sendFile(__dirname + '/public/index.html');
+});
+app.get('/pubnub', function(req, res) {
+  res.sendFile(__dirname + '/public/index2.html');
+});
 
-const app = express();
-app.use(cors());
+io.on('connection', function(socket) {
+  console.log('a user connected', Date.now().toLocaleString());
+  connections.push(socket);
+  console.log(connections.length);
 
-app.get(
-  '/audit',
-  asyncMiddleware(async (req, res, next) => {
-    if (req.query.url) {
-      const results = await launchChromeAndRunLighthouse(req.query.url);
-      res.json(extractResult(results));
-    } else {
-      res.json({
-        error: true,
-        message: `You're not specifying any URL`
-      });
-    }
-  })
-);
+  socket.on('chat message', function(message) {
+    io.sockets.emit('new message', message);
+  });
 
-app.listen(process.env.PORT || 8081, () => console.log('App don dey run'));
+  socket.on('disconnect', function() {
+    console.log('user disconnected', Date.now().toLocaleString());
+    connections.splice(connections.indexOf(socket), 1);
+
+    console.log(connections.length);
+  });
+});
+
+http.listen(3000, function() {
+  console.log('listening on *:3000');
+});

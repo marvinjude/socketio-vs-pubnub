@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>PubNub Example</h1>
+    <input id="name" placeholder="name" />
+    <div id="messages"></div>
+    <form id="chatform">
+      <textarea id="message" placeholder="message"></textarea>
+      <button type="submit">SEND</button>
+    </form>
+
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.25.2.js"></script>
+    <script>
+      const pubnub = new PubNub({
+        publishKey: '',
+        subscribeKey: ''
+      });
+
+      const message = document.querySelector('#message');
+      const sender = document.querySelector('#name');
+      const chatform = document.querySelector('#chatform');
+      const messagesContainer = document.querySelector('#messages');
+      let messages = [];
+
+      chatform.addEventListener('submit', e => {
+        e.preventDefault();
+        const publishConfig = {
+          channel: 'new-channel',
+          message: {
+            sender: sender.value,
+            body: message.value
+          }
+        };
+
+        //Publish message
+        pubnub.publish(publishConfig, function(status, response) {
+          console.log(status, response);
+        });
+      });
+
+      //Listen for new messages and connection status
+      pubnub.addListener({
+        status: statusEvent => {
+          if (statusEvent.category === 'PNConnectedCategory') {
+            console.log('connected');
+          }
+        },
+        message: msg => {
+          handler(msg.message);
+        }
+      });
+
+      //Subscribe to channel
+      pubnub.subscribe({ channels: ['new-channel'] });
+
+      function handler(message) {
+        messages = messages.concat(message);
+        messagesContainer.innerHTML =
+          messagesContainer.innerHTML +
+          `
+          <div>
+            <strong>${message.body}</strong>
+            <span>(${message.sender})</span>
+          </div>
+        `;
+      }
+    </script>
+  </body>
+</html>
